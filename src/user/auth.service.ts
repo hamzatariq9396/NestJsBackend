@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable,UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserService } from './user.service';
@@ -46,14 +46,32 @@ export class AuthService {
   }
 
  async getAllUser(request:any){
-  
-     
-     
+    try{
+         // Verify token 
+
     const data = await this.jwtSerivice.verifyAsync(request.cookies['jwt'])
 
-  return {
-    message:"success",
-    data:data
+    if(!data){
+      throw new UnauthorizedException()
+      
+    }
+     const user = await this.userService.findOne(data.id)
+       return {
+       
+        message:"Verified user",
+        user:user
+       }
+    } catch(e){
+      throw new UnauthorizedException()
+    }
+     
+  
   }
+
+  async logout(response:any){
+     response.clearCookie('jwt')
+     return{
+      message:"User is logout successfuly"
+     }
   }
 }

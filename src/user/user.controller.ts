@@ -35,9 +35,15 @@ export class UserController {
    return this.authService.signIn(body.email,body.password,response);
 
   }
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get('getAllUsers')
   getAllUser(@Req() request:Request){
      return this.authService.getAllUser(request)
+  }
+  @Post('logout')
+  LogoutUser(@Res({passthrough:true})response:Response){
+    return this.authService.logout(response)
+
   }
 
   @Post('signup')
