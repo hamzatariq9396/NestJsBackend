@@ -48,11 +48,14 @@ async findOne(id: number) : Promise<User> {
     return "user is updated Successfully"
   }
 // Remove User by id 
-  async remove(id: number): Promise<User> {
+  async remove(id: number) {
     const user = await this.repo.findOneBy({ id });
     if (!user) {
       throw new BadRequestException('User is not found ');  
     }
-    return this.repo.remove(user);
+ await  this.repo.remove(user);
+ return {
+  message:"User is deleted successfully"
+ }
   }
 }

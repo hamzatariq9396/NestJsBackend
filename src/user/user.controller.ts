@@ -10,12 +10,13 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Res,
-  Req
+  Req,UnauthorizedException
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserService } from './user.service';
+import { JwtService } from '@nestjs/jwt';
 import{Response ,Request} from 'express'
 ;
 @Controller('user')
@@ -23,6 +24,7 @@ export class UserController {
   constructor(
     private userService: UserService,
     private authService: AuthService,
+    private jwtSerivice: JwtService,
   ) {}
 
   @Get('findUser')
@@ -36,16 +38,43 @@ export class UserController {
 
   }
   @UseInterceptors(ClassSerializerInterceptor)
-  @Get('getAllUsers')
-  getAllUser(@Req() request:Request){
-     return this.authService.getAllUser(request)
+  @Get('getUser')
+  getUser(@Req() request:Request){
+     return this.authService.getUser(request)
   }
   @Post('logout')
-  LogoutUser(@Res({passthrough:true})response:Response){
+  LogoutUser(@Res({passthrough:true}) response:Response){
     return this.authService.logout(response)
-
   }
-
+  @Delete('deleteUser/:id')
+ async DeleteUser(@Param('id') id:number,@Req() request:Request){
+  try{
+    const data = await this.jwtSerivice.verifyAsync(request.cookies['jwt'])
+   if(!data){
+    throw new UnauthorizedException()
+   }
+   else{
+    return this.authService.deletetUser(id)
+   }
+  } catch(e){
+    throw new UnauthorizedException()
+  }
+   
+  }
+@Get('auth/:id')
+async getUserById(@Param('id') id:number,@Req() request:Request){
+  try{
+    const data = await this.jwtSerivice.verifyAsync(request.cookies['jwt'])
+   if(!data){
+    throw new UnauthorizedException()
+   }
+   else{
+    return this.authService.findUser(id)
+   }
+  } catch(e){
+    throw new UnauthorizedException()
+  }
+}
   @Post('signup')
   createUser(@Body() body: CreateUserDto) {
    return this.authService.signup(body.name, body.email, body.password);
