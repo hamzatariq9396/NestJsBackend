@@ -9,13 +9,15 @@ import {
   Put,
   UseInterceptors,
   ClassSerializerInterceptor,
-  Res
+  Res,
+  Req
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserService } from './user.service';
-import{Response } from 'express'
+import{Response ,Request} from 'express'
+;
 @Controller('user')
 export class UserController {
   constructor(
@@ -32,6 +34,10 @@ export class UserController {
   LoginUser(@Body() body:UpdateUserDto,@Res({passthrough :true})response :Response) {
    return this.authService.signIn(body.email,body.password,response);
 
+  }
+  @Get('getAllUsers')
+  getAllUser(@Req() request:Request){
+     return this.authService.getAllUser(request)
   }
 
   @Post('signup')

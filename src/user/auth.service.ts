@@ -36,12 +36,24 @@ export class AuthService {
         throw new BadRequestException('Invalid password of a user');
       } else {
         const jwt = await this.jwtSerivice.signAsync({ id: user[0].id });
-       response.cookie(jwt,{httpOnly:true })
+       response.cookie('jwt',jwt,{httpOnly:true})
         return{
             message:"success",
-            token:jwt
+           
         }
       }
     }
+  }
+
+ async getAllUser(request:any){
+  
+     
+     
+    const data = await this.jwtSerivice.verifyAsync(request.cookies['jwt'])
+
+  return {
+    message:"success",
+    data:data
+  }
   }
 }
