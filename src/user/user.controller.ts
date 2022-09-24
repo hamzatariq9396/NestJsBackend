@@ -10,15 +10,17 @@ import {
   UseInterceptors,
   ClassSerializerInterceptor,
   Res,
-  Req,UnauthorizedException
+  Req,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserService } from './user.service';
 import { JwtService } from '@nestjs/jwt';
-import{Response ,Request} from 'express'
-;
+import { Response, Request } from 'express';
+import { AuthGuard } from 'src/guards/authGuard';
 @Controller('user')
 export class UserController {
   constructor(
@@ -33,56 +35,40 @@ export class UserController {
   }
 
   @Post('signin-user')
-  LoginUser(@Body() body:UpdateUserDto,@Res({passthrough :true})response :Response) {
-   return this.authService.signIn(body.email,body.password,response);
-
+  LoginUser(
+    @Body() body: UpdateUserDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    return this.authService.signIn(body.email, body.password, response);
   }
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('getUser')
-  getUser(@Req() request:Request){
-     return this.authService.getUser(request)
+  getUser(@Req() request: Request) {
+    return this.authService.getUser(request);
   }
   @Post('logout')
-  LogoutUser(@Res({passthrough:true}) response:Response){
-    return this.authService.logout(response)
+  LogoutUser(@Res({ passthrough: true }) response: Response) {
+    return this.authService.logout(response);
   }
   @Delete('deleteUser/:id')
- async DeleteUser(@Param('id') id:number,@Req() request:Request){
-  try{
-    const data = await this.jwtSerivice.verifyAsync(request.cookies['jwt'])
-   if(!data){
-    throw new UnauthorizedException()
-   }
-   else{
-    return this.authService.deletetUser(id)
-   }
-  } catch(e){
-    throw new UnauthorizedException()
+  @UseGuards(AuthGuard)
+  async DeleteUser(@Param('id') id: number) {
+    return this.authService.deletetUser(id);
   }
-   
+
+  @Get('auth/:id')
+  @UseGuards(AuthGuard)
+  async getUserById(@Param('id') id: number) {
+    return this.authService.findUser(id);
   }
-@Get('auth/:id')
-async getUserById(@Param('id') id:number,@Req() request:Request){
-  try{
-    const data = await this.jwtSerivice.verifyAsync(request.cookies['jwt'])
-   if(!data){
-    throw new UnauthorizedException()
-   }
-   else{
-    return this.authService.findUser(id)
-   }
-  } catch(e){
-    throw new UnauthorizedException()
-  }
-}
   @Post('signup')
   createUser(@Body() body: CreateUserDto) {
-   return this.authService.signup(body.name, body.email, body.password);
+    return this.authService.signup(body.name, body.email, body.password);
   }
- 
 
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('allUsers')
+  @UseGuards(AuthGuard)
   findUsers() {
     return this.userService.findAll();
   }
